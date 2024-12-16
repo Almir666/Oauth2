@@ -25,8 +25,6 @@ public class User implements UserDetails {
 
     private String name;
 
-    private String login;
-
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -71,17 +69,11 @@ public class User implements UserDetails {
 
     public static class Builder {
         private String name;
-        private String login;
         private String email;
         private List<Role> roles = new ArrayList<>();
 
         public Builder name(String name) {
             this.name = name;
-            return this;
-        }
-
-        public Builder login(String login) {
-            this.login = login;
             return this;
         }
 
@@ -103,7 +95,6 @@ public class User implements UserDetails {
         public User build() {
             User user = new User();
             user.name = this.name;
-            user.login = this.login;
             user.email = this.email;
             user.roles = this.roles;
 

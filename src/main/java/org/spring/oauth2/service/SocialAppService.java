@@ -1,14 +1,10 @@
 package org.spring.oauth2.service;
 
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.spring.oauth2.entity.User;
 import org.spring.oauth2.repository.UserRepository;
 import org.spring.oauth2.role.Role;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -20,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class SocialAppService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
     private final UserRepository userRepository;
@@ -30,18 +27,28 @@ public class SocialAppService implements OAuth2UserService<OAuth2UserRequest, OA
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
         List<Role> roles = new ArrayList<>();
         String clientName = userRequest.getClientRegistration().getClientName();
+        User user;
         if(clientName.equals("GitHub")) {
-                roles.add(Role.ADMIN);
+            if(userRepository.findByName(oAuth2User.getAttribute("login")) == null) {
+                roles.add(Role.admin);
+                user = new User.Builder()
+                        .name(oAuth2User.getAttribute("login"))
+                        .email("unknown")
+                        .roles(roles).build();
+                userRepository.save(user);
+                log.info("The user with the login: " + oAuth2User.getAttribute("login") + " and role: ADMIN is saved");
+            }
         } else {
-            roles.add(Role.USER);
+            if(userRepository.findByName(oAuth2User.getAttribute("name")) == null) {
+                roles.add(Role.user);
+                user = new User.Builder()
+                        .name(oAuth2User.getAttribute("name"))
+                        .email(oAuth2User.getAttribute("email"))
+                        .roles(roles).build();
+                userRepository.save(user);
+                log.info("The user with the login: " + oAuth2User.getAttribute("name") + " and role: USER, is saved");
+            }
         }
-
-        User user = new User.Builder()
-                .name(oAuth2User.getAttribute("name"))
-                .login(oAuth2User.getAttribute("login"))
-                .email(oAuth2User.getAttribute("email"))
-                .roles(roles).build();
-        userRepository.save(user);
 
         return oAuth2User;
     }

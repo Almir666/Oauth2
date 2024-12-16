@@ -1,22 +1,24 @@
 package org.spring.oauth2.controller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
 public class HomeController {
-
     @GetMapping("/all")
     public String pageForAll() {
         return "Page for all clients";
     }
 
     @GetMapping("/admin")
+    @PreAuthorize("hasRole('admin')")
     public String adminPage() {
         return "Page only for admins";
     }
@@ -32,4 +34,5 @@ public class HomeController {
                 + model.getAttribute("email") + " "
                 + model.getAttribute("id");
     }
+
 }
